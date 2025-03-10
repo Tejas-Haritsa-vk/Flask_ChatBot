@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Chatbot</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts for modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /*background: url('https://www.transparenttextures.com/patterns/asfalt.png'); /* Subtle texture for background */
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 900px;
+            height: 85vh;
+            /* background: rgba(255, 255, 255, 0.8); */ /* Translucent background */
+            backdrop-filter: blur(15px); /* Frosted glass effect */
+            border-radius: 20px;
+            box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding: 20px;
+            animation: fadeIn 1s ease-in-out;
+            opacity: 0.80;
+            color: #faf0e6;
+        }
+
+        .logo {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            background-image: url('https://img.freepik.com/free-vector/gradient-abstract-logo-template_23-2148158860.jpg');
+            background-size: cover;
+            border-radius: 50%;
+            z-index: 10;
+            transition: opacity 0.5s ease-in-out;
+            opacity: 1.0;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            margin-top: 90px; /* Provide space for the floating logo */
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .user-msg, .bot-msg {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 90%;
+            word-wrap: break-word;
+            opacity: 0.80;background-color: rgba(59, 130, 246, 0.80); /* Adjusted background color with 80% opacity */
+
+        }
+
+        .user-msg {
+            /*background-color: #3b82f6; */
+            background-color: rgba(59, 130, 246, 0.80); /* Adjusted background color with 80% opacity */
+            color: white;
+            align-self: flex-end;
+            opacity: 1.0;
+        }
+
+        .bot-msg {
+            background-color: #a6e7ff;
+            color: #333;
+            align-self: flex-start;
+            border: 1px solid #ddd;
+            opacity: 1.0;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            opacity: 0.95;
+        }
+
+        .input-box {
+            flex: 1;
+            padding: 12px;
+            border-radius: 30px;
+            border: none;
+            outline: none;
+            font-size: 1.1em;
+            background-color: #e6f1ff;
+            color: #333;
+        }
+
+        .send-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+            opacity: 1.0;
+        }
+
+        .send-btn:hover {
+            background-color: #2563eb;
+        }
+
+        .typing-indicator {
+            font-style: italic;
+            color: #888;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="logo" id="logo"></div>
+
+        <div class="chat-box" id="chatBox">
+            <!-- Chat messages will appear here -->
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="userInput" class="input-box" placeholder="Type your message..." />
+            <button class="send-btn" id="sendBtn">Send</button>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">Typing...</div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            const chatBox = $('#chatBox');
+            const userInput = $('#userInput');
+            const sendBtn = $('#sendBtn');
+            const typingIndicator = $('#typingIndicator');
+            const logo = $('#logo');
+
+            // Remove logo when user starts typing
+            userInput.on('focus', function() {
+                logo.css('opacity', '0');
+                setTimeout(function() {
+                    logo.hide();
+                }, 500);
+            });
+
+            sendBtn.click(function() {
+                const userMessage = userInput.val().trim();
+                if (userMessage) {
+                    addUserMessage(userMessage);
+                    userInput.val('');
+                    sendMessageToBot(userMessage);
+                }
+            });
+
+            userInput.keyup(function(event) {
+                if (event.keyCode === 13) { // Enter key
+                    sendBtn.click();
+                }
+            });
+
+            function addUserMessage(message) {
+                chatBox.append('<div class="user-msg">' + message + '</div>');
+                chatBox.scrollTop(chatBox[0].scrollHeight); // Scroll to the bottom
+            }
+
+            function addBotMessage(message) {
+                chatBox.append('<div class="bot-msg">' + message + '</div>');
+                chatBox.scrollTop(chatBox[0].scrollHeight); // Scroll to the bottom
+            }
+
+            function sendMessageToBot(message) {
+                typingIndicator.show(); // Show typing indicator
+                $.ajax({
+                    url: '/ask',
+                    method: 'POST',
+                    data: { message: message },
+                    success: function(response) {
+                        typingIndicator.hide();
+                        addBotMessage(response.reply);
+                    },
+                    error: function() {
+                        typingIndicator.hide();
+                        addBotMessage("Sorry, I couldn't process your message.");
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
